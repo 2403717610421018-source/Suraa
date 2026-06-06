@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>something i need to say… 🐱</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --ink:#2b1a20; --rose:#d94f6b; --blush:#f7c5cf;
+    --paper:#fff8f0; --lined:#f9eded; --rule:#f0d5d9;
+  }
+  html,body{ width:100%; height:100%; background:#e8ddd5;
+    font-family:'Caveat',cursive; color:var(--ink); overflow:hidden; }
+
+  /* BOOK */
+  #book{
+    position:relative; width:min(820px,98vw); height:min(580px,96vh);
+    margin:auto; top:50%; left:50%; transform:translate(-50%,-50%);
+  }
+
+  /* PAGE */
+  .page{
+    position:absolute; inset:0; background:var(--paper);
+    border-radius:4px 16px 16px 4px;
+    box-shadow:4px 6px 30px rgba(0,0,0,.18),inset -2px 0 8px rgba(0,0,0,.06);
+    display:flex; align-items:stretch; overflow:hidden;
+    opacity:0; pointer-events:none; transition:opacity .05s;
+  }
+  .page.active{ opacity:1; pointer-events:all; z-index:10; }
+  .page.flip-out{ animation:flipOut .5s cubic-bezier(.7,0,.3,1) forwards; z-index:20; pointer-events:none; }
+  .page.flip-in { animation:flipIn  .5s cubic-bezier(.7,0,.3,1) forwards; z-index:5; }
+  @keyframes flipOut{ from{transform:rotateY(0);opacity:1} to{transform:rotateY(-90deg);opacity:0} }
+  @keyframes flipIn { from{transform:rotateY(90deg);opacity:0} to{transform:rotateY(0);opacity:1} }
+
+  /* SPINE */
+  .spine{
+    width:28px; flex-shrink:0;
+    background:linear-gradient(to right,#c9a0aa,#e8b4be);
+    border-radius:4px 0 0 4px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  }
+  .spine-dot{ width:6px; height:6px; border-radius:50%; background:#fff6; }
+
+  /* LINED BODY */
+  .page-body{
+    flex:1;
+    background:var(--lined);
+    background-image:repeating-linear-gradient(transparent,transparent 31px,var(--rule) 31px,var(--rule) 32px);
+    background-position:0 38px;
+    padding:38px 36px 20px 28px;
+    display:flex; flex-direction:column;
+    position:relative; overflow:hidden;
+  }
+  .page-body::before{
+    content:''; position:absolute; left:68px; top:0; bottom:0;
+    width:1.5px; background:rgba(217,79,107,.3);
+  }
+  .page-num{ position:absolute; bottom:14px; right:22px; font-size:1rem; color:#c9a0aa; }
+
+  /* TEXT */
+  .typed-area{ flex:1; padding-left:48px; padding-top:4px; position:relative; }
+  .line{ font-size:clamp(1.1rem,2.6vw,1.45rem); line-height:32px; color:var(--ink); min-height:32px; }
+  .line.heading{ font-size:clamp(1.5rem,4vw,2rem); font-weight:700; color:var(--rose); }
+  .line.small{ font-size:clamp(.9rem,2vw,1.1rem); color:#8a5060; }
+  .line.gap{ height:32px; }
+  .line.center{ text-align:center; padding-left:0; }
+  .cursor{ display:inline-block; width:2px; height:1.1em; background:var(--rose);
+    vertical-align:text-bottom; margin-left:1px; animation:blink .8s step-end infinite; }
+  @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* STICKER */
+  .sticker{ position:absolute; font-size:1.8rem; transform:rotate(var(--r,-8deg));
+    filter:drop-shadow(1px 2px 3px rgba(0,0,0,.15)); user-select:none; }
+
+  /* ── CSS CAT ── */
+  .cat-wrap{
+    position:absolute; right:22px; bottom:36px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .cat-label{
+    font-family:'Caveat',cursive; font-size:.85rem; color:#7a4050;
+    background:white; padding:2px 8px; border-radius:8px;
+    box-shadow:1px 2px 6px rgba(0,0,0,.12);
+  }
+  .cat-card{
+    background:white; padding:8px 8px 8px;
+    box-shadow:2px 4px 16px rgba(0,0,0,.18);
+    border-radius:3px;
+    transform:rotate(var(--cr,2deg));
+  }
+  .cat-svg{ display:block; }
+
+  /* CAT ANIMATIONS */
+  @keyframes tailWag{
+    0%,100%{transform-origin:top center;transform:rotate(-20deg)}
+    50%{transform:rotate(20deg)}
+  }
+  @keyframes earTwitch{
+    0%,90%,100%{transform:rotate(0)} 95%{transform:rotate(-8deg)}
+  }
+  @keyframes eyeBlink{
+    0%,94%,100%{transform:scaleY(1)} 97%{transform:scaleY(0.05)}
+  }
+  @keyframes bodyBob{
+    0%,100%{transform:translateY(0)} 50%{transform:translateY(-2px)}
+  }
+  @keyframes tearDrop{
+    0%{transform:translateY(0);opacity:1}
+    100%{transform:translateY(12px);opacity:0}
+  }
+  @keyframes heartPop{
+    0%,100%{transform:scale(1)} 50%{transform:scale(1.3)}
+  }
+  @keyframes pawWave{
+    0%,100%{transform:rotate(0deg)} 50%{transform:rotate(-25deg)}
+  }
+
+  /* PROMISE */
+  .promise-item{
+    display:flex; align-items:center; gap:10px;
+    line-height:32px; font-size:clamp(1rem,2.4vw,1.3rem);
+    color:var(--ink); cursor:pointer;
+  }
+  .promise-item .box{
+    width:18px; height:18px; border:2px solid var(--rose); border-radius:3px;
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size:1rem; transition:background .2s;
+  }
+  .promise-item.checked .box{ background:var(--rose); color:white; }
+
+  /* NAV */
+  .nav{
+    position:absolute; bottom:-52px; width:100%;
+    display:flex; justify-content:center; gap:18px;
+  }
+  .nav-btn{
+    background:white; border:2px solid var(--blush); color:var(--rose);
+    font-family:'Caveat',cursive; font-size:1.1rem;
+    padding:.4rem 1.6rem; border-radius:30px; cursor:pointer;
+    box-shadow:0 3px 12px rgba(217,79,107,.15);
+    transition:background .2s,transform .15s;
+  }
+  .nav-btn:hover{ background:var(--blush); transform:translateY(-2px); }
+  .nav-btn:disabled{ opacity:.35; cursor:default; transform:none; }
+
+  /* DOTS */
+  .dots{
+    position:absolute; bottom:-78px; width:100%;
+    display:flex; justify-content:center; gap:10px;
+  }
+  .dot{ width:8px; height:8px; border-radius:50%; background:#d0b8bb; transition:background .3s,transform .3s; }
+  .dot.on{ background:var(--rose); transform:scale(1.3); }
+
+  /* FORGIVE BTN */
+  .forgive-btn{
+    display:block; margin:8px auto 0;
+    background:linear-gradient(135deg,var(--rose),#b83255);
+    color:white; border:none; font-family:'Caveat',cursive;
+    font-size:1.4rem; padding:.6rem 2.2rem; border-radius:40px;
+    cursor:pointer; box-shadow:0 6px 22px rgba(217,79,107,.35);
+    transition:transform .2s,box-shadow .2s;
+  }
+  .forgive-btn:hover{ transform:scale(1.06); }
+
+  /* CONFETTI */
+  .conf-piece{
+    position:fixed; pointer-events:none;
+    animation:confDrop linear forwards; z-index:999;
+  }
+  @keyframes confDrop{
+    0%{opacity:1;transform:translateY(0) rotate(0)}
+    100%{opacity:0;transform:translateY(100vh) rotate(540deg)}
+  }
+  .heart-burst{
+    position:fixed; font-size:1.4rem; pointer-events:none;
+    animation:burstOut .9s ease-out forwards; z-index:999;
+  }
+  @keyframes burstOut{
+    0%{opacity:1;transform:translate(0,0) scale(1)}
+    100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(1.5)}
+  }
+</style>
+</head>
+<body>
+
+<div id="book">
+
+  <!-- PAGE 1 -->
+  <div class="page active" id="p0">
+    <div class="spine"><div class="spine-dot"></div><div class="spine-dot"></div><div class="spine-dot"></div></div>
+    <div class="page-body">
+      <div class="typed-area" id="ta0"></div>
+      <div class="page-num">1 / 5</div>
+      <!-- Sad CSS cat -->
+      <div class="cat-wrap" style="--cr:-4deg">
+        <svg class="cat-svg" width="110" height="110" viewBox="0 0 110 110">
+          <!-- body -->
+          <g style="animation:bodyBob 2s ease-in-out infinite">
+            <ellipse cx="55" cy="78" rx="28" ry="24" fill="#e8c4b8"/>
+            <!-- head -->
+            <ellipse cx="55" cy="48" rx="24" ry="22" fill="#e8c4b8"/>
+            <!-- ears -->
+            <polygon points="35,32 30,14 46,28" fill="#e8c4b8" style="animation:earTwitch 3s infinite"/>
+            <polygon points="37,30 33,18 45,27" fill="#f4a0a8"/>
+            <polygon points="75,32 80,14 64,28" fill="#e8c4b8"/>
+            <polygon points="73,30 77,18 65,27" fill="#f4a0a8"/>
+            <!-- sad eyes -->
+            <g style="animation:eyeBlink 4s infinite">
+              <ellipse cx="45" cy="48" rx="5" ry="4" fill="#4a2830"/>
+              <ellipse cx="65" cy="48" rx="5" ry="4" fill="#4a2830"/>
+              <circle cx="46.5" cy="46.5" r="1.5" fill="white"/>
+              <circle cx="66.5" cy="46.5" r="1.5" fill="white"/>
+            </g>
+            <!-- sad brows -->
+            <line x1="40" y1="40" x2="50" y2="43" stroke="#8a5060" stroke-width="2" stroke-linecap="round"/>
+            <line x1="70" y1="40" x2="60" y2="43" stroke="#8a5060" stroke-width="2" stroke-linecap="round"/>
+            <!-- nose -->
+            <ellipse cx="55" cy="54" rx="3" ry="2" fill="#f4a0a8"/>
+            <!-- mouth sad -->
+            <path d="M49 58 Q55 55 61 58" stroke="#8a5060" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <!-- whiskers -->
+            <line x1="30" y1="53" x2="48" y2="55" stroke="#8a5060" stroke-width="1" opacity=".6"/>
+            <line x1="30" y1="57" x2="48" y2="57" stroke="#8a5060" stroke-width="1" opacity=".6"/>
+            <line x1="80" y1="53" x2="62" y2="55" stroke="#8a5060" stroke-width="1" opacity=".6"/>
+            <line x1="80" y1="57" x2="62" y2="57" stroke="#8a5060" stroke-width="1" opacity=".6"/>
+            <!-- tear -->
+            <ellipse cx="43" cy="54" rx="2" ry="3" fill="#88c4e8" style="animation:tearDrop 2s ease-in infinite"/>
+            <!-- tail -->
+            <path d="M80 90 Q100 80 95 65" stroke="#e8c4b8" stroke-width="8" fill="none" stroke-linecap="round"
+              style="animation:tailWag 2.5s ease-in-out infinite; transform-origin:80px 90px"/>
+            <!-- paws -->
+            <ellipse cx="40" cy="98" rx="10" ry="6" fill="#e8c4b8"/>
+            <ellipse cx="70" cy="98" rx="10" ry="6" fill="#e8c4b8"/>
+          </g>
+        </svg>
+        <div class="cat-label">me rn 😿</div>
+      </div>
+      <span class="sticker" style="--r:12deg; right:16px; top:18px;">🐾</span>
+    </div>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page" id="p1">
+    <div class="spine"><div class="spine-dot"></div><div class="spine-dot"></div><div class="spine-dot"></div></div>
+    <div class="page-body">
+      <div class="typed-area" id="ta1"></div>
+      <div class="page-num">2 / 5</div>
+      <!-- Pleading cat -->
+      <div class="cat-wrap" style="--cr:3deg">
+        <svg class="cat-svg" width="110" height="110" viewBox="0 0 110 110">
+          <g style="animation:bodyBob 1.8s ease-in-out infinite">
+            <ellipse cx="55" cy="78" rx="28" ry="24" fill="#c8b4d8"/>
+            <ellipse cx="55" cy="48" rx="24" ry="22" fill="#c8b4d8"/>
+            <polygon points="35,32 30,14 46,28" fill="#c8b4d8"/>
+            <polygon points="37,30 33,18 45,27" fill="#e8a0b8"/>
+            <polygon points="75,32 80,14 64,28" fill="#c8b4d8"/>
+            <polygon points="73,30 77,18 65,27" fill="#e8a0b8"/>
+            <!-- big pleading eyes -->
+            <g style="animation:eyeBlink 5s infinite">
+              <ellipse cx="45" cy="48" rx="7" ry="7" fill="#3a2040"/>
+              <ellipse cx="65" cy="48" rx="7" ry="7" fill="#3a2040"/>
+              <circle cx="47" cy="45" r="2.5" fill="white"/>
+              <circle cx="67" cy="45" r="2.5" fill="white"/>
+              <circle cx="44" cy="50" r="1" fill="white" opacity=".7"/>
+              <circle cx="64" cy="50" r="1" fill="white" opacity=".7"/>
+            </g>
+            <ellipse cx="55" cy="54" rx="3" ry="2" fill="#e8a0b8"/>
+            <path d="M49 58 Q55 62 61 58" stroke="#6a3050" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <line x1="30" y1="53" x2="48" y2="55" stroke="#6a3050" stroke-width="1" opacity=".6"/>
+            <line x1="30" y1="57" x2="48" y2="57" stroke="#6a3050" stroke-width="1" opacity=".6"/>
+            <line x1="80" y1="53" x2="62" y2="55" stroke="#6a3050" stroke-width="1" opacity=".6"/>
+            <line x1="80" y1="57" x2="62" y2="57" stroke="#6a3050" stroke-width="1" opacity=".6"/>
+            <!-- raised paw -->
+            <ellipse cx="35" cy="75" rx="8" ry="7" fill="#c8b4d8" style="animation:pawWave 1.5s ease-in-out infinite; transform-origin:35px 82px"/>
+            <ellipse cx="75" cy="98" rx="10" ry="6" fill="#c8b4d8"/>
+            <path d="M80 90 Q100 80 95 65" stroke="#c8b4d8" stroke-width="8" fill="none" stroke-linecap="round"
+              style="animation:tailWag 2s ease-in-out infinite; transform-origin:80px 90px"/>
+          </g>
+        </svg>
+        <div class="cat-label">i know i know 😔</div>
+      </div>
+      <span class="sticker" style="--r:-10deg; right:22px; top:14px;">💕</span>
+    </div>
+  </div>
+
+  <!-- PAGE 3 -->
+  <div class="page" id="p2">
+    <div class="spine"><div class="spine-dot"></div><div class="spine-dot"></div><div class="spine-dot"></div></div>
+    <div class="page-body">
+      <div class="typed-area" id="ta2"></div>
+      <div class="page-num">3 / 5</div>
+      <!-- Happy cat with heart -->
+      <div class="cat-wrap" style="--cr:-5deg">
+        <svg class="cat-svg" width="110" height="110" viewBox="0 0 110 110">
+          <g style="animation:bodyBob 2.2s ease-in-out infinite">
+            <ellipse cx="55" cy="78" rx="28" ry="24" fill="#f4c4a0"/>
+            <ellipse cx="55" cy="48" rx="24" ry="22" fill="#f4c4a0"/>
+            <polygon points="35,32 30,14 46,28" fill="#f4c4a0" style="animation:earTwitch 2.5s infinite"/>
+            <polygon points="37,30 33,18 45,27" fill="#f8a090"/>
+            <polygon points="75,32 80,14 64,28" fill="#f4c4a0"/>
+            <polygon points="73,30 77,18 65,27" fill="#f8a090"/>
+            <!-- happy eyes -->
+            <g style="animation:eyeBlink 3.5s infinite">
+              <ellipse cx="45" cy="48" rx="5" ry="4.5" fill="#3a2010"/>
+              <ellipse cx="65" cy="48" rx="5" ry="4.5" fill="#3a2010"/>
+              <circle cx="46.5" cy="46.5" r="2" fill="white"/>
+              <circle cx="66.5" cy="46.5" r="2" fill="white"/>
+            </g>
+            <ellipse cx="55" cy="54" rx="3" ry="2" fill="#f8a090"/>
+            <!-- happy mouth -->
+            <path d="M49 57 Q55 63 61 57" stroke="#8a4020" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <line x1="30" y1="53" x2="48" y2="55" stroke="#8a4020" stroke-width="1" opacity=".5"/>
+            <line x1="30" y1="57" x2="48" y2="57" stroke="#8a4020" stroke-width="1" opacity=".5"/>
+            <line x1="80" y1="53" x2="62" y2="55" stroke="#8a4020" stroke-width="1" opacity=".5"/>
+            <line x1="80" y1="57" x2="62" y2="57" stroke="#8a4020" stroke-width="1" opacity=".5"/>
+            <!-- heart above head -->
+            <text x="50" y="24" font-size="16" style="animation:heartPop 1.2s ease-in-out infinite">💗</text>
+            <ellipse cx="40" cy="98" rx="10" ry="6" fill="#f4c4a0"/>
+            <ellipse cx="70" cy="98" rx="10" ry="6" fill="#f4c4a0"/>
+            <path d="M80 90 Q105 75 98 58" stroke="#f4c4a0" stroke-width="8" fill="none" stroke-linecap="round"
+              style="animation:tailWag 2s ease-in-out infinite; transform-origin:80px 90px"/>
+          </g>
+        </svg>
+        <div class="cat-label">u 🥺</div>
+      </div>
+      <span class="sticker" style="--r:8deg; right:20px; top:16px;">🌹</span>
+    </div>
+  </div>
+
+  <!-- PAGE 4 PROMISES -->
+  <div class="page" id="p3">
+    <div class="spine"><div class="spine-dot"></div><div class="spine-dot"></div><div class="spine-dot"></div></div>
+    <div class="page-body">
+      <div class="typed-area" id="ta3"></div>
+      <div class="page-num">4 / 5</div>
+      <span class="sticker" style="--r:-7deg; right:20px; top:14px;">✨</span>
+      <span class="sticker" style="--r:9deg; right:18px; top:55px; font-size:1.4rem;">🐱</span>
+    </div>
+  </div>
+
+  <!-- PAGE 5 FINAL -->
+  <div class="page" id="p4">
+    <div class="spine"><div class="spine-dot"></div><div class="spine-dot"></div><div class="spine-dot"></div></div>
+    <div class="page-body">
+      <div class="typed-area" id="ta4"></div>
+      <div class="page-num">5 / 5</div>
+      <!-- Love cats together -->
+      <div class="cat-wrap" style="--cr:4deg">
+        <svg class="cat-svg" width="120" height="100" viewBox="0 0 120 100">
+          <!-- cat 1 (pink) -->
+          <g transform="translate(0,0)" style="animation:bodyBob 2s ease-in-out infinite">
+            <ellipse cx="32" cy="70" rx="20" ry="17" fill="#f2b0c0"/>
+            <ellipse cx="32" cy="46" rx="18" ry="16" fill="#f2b0c0"/>
+            <polygon points="20,34 16,18 30,30" fill="#f2b0c0"/>
+            <polygon points="22,32 19,20 29,29" fill="#f8d0d8"/>
+            <polygon points="44,34 48,18 34,30" fill="#f2b0c0"/>
+            <polygon points="42,32 45,20 35,29" fill="#f8d0d8"/>
+            <ellipse cx="26" cy="44" rx="4" ry="3.5" fill="#3a1828" style="animation:eyeBlink 4s infinite"/>
+            <ellipse cx="38" cy="44" rx="4" ry="3.5" fill="#3a1828" style="animation:eyeBlink 4s infinite"/>
+            <circle cx="27" cy="43" r="1.2" fill="white"/>
+            <circle cx="39" cy="43" r="1.2" fill="white"/>
+            <path d="M28 53 Q32 57 36 53" stroke="#c06080" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- cat 2 (orange) -->
+          <g transform="translate(56,0)" style="animation:bodyBob 2.2s .3s ease-in-out infinite">
+            <ellipse cx="32" cy="70" rx="20" ry="17" fill="#f4c490"/>
+            <ellipse cx="32" cy="46" rx="18" ry="16" fill="#f4c490"/>
+            <polygon points="20,34 16,18 30,30" fill="#f4c490"/>
+            <polygon points="22,32 19,20 29,29" fill="#f8a878"/>
+            <polygon points="44,34 48,18 34,30" fill="#f4c490"/>
+            <polygon points="42,32 45,20 35,29" fill="#f8a878"/>
+            <ellipse cx="26" cy="44" rx="4" ry="3.5" fill="#3a2010" style="animation:eyeBlink 3.5s .5s infinite"/>
+            <ellipse cx="38" cy="44" rx="4" ry="3.5" fill="#3a2010" style="animation:eyeBlink 3.5s .5s infinite"/>
+            <circle cx="27" cy="43" r="1.2" fill="white"/>
+            <circle cx="39" cy="43" r="1.2" fill="white"/>
+            <path d="M28 53 Q32 57 36 53" stroke="#a06030" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- shared heart -->
+          <text x="52" y="28" font-size="20" style="animation:heartPop 1.2s ease-in-out infinite">💗</text>
+        </svg>
+        <div class="cat-label">us 💕</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="prevBtn" onclick="changePage(-1)" disabled>← prev</button>
+    <button class="nav-btn" id="nextBtn" onclick="changePage(1)">next →</button>
+  </div>
+  <div class="dots" id="dots"></div>
+</div>
+
+<script>
+const pages = [
+  [
+    {type:'line heading', text:'hey… 🐱'},
+    {type:'line gap'},
+    {type:'line', text:'sooo i\'ve been trying to figure out'},
+    {type:'line', text:'how to say this for like 2 hours lol'},
+    {type:'line gap'},
+    {type:'line', text:'i made you a little something bc'},
+    {type:'line', text:'i owe you a real apology and'},
+    {type:'line small', text:'cats make everything better right?? 🐾'},
+  ],
+  [
+    {type:'line heading', text:'i messed up.'},
+    {type:'line gap'},
+    {type:'line', text:'i was being dumb and stubborn and'},
+    {type:'line', text:'honestly kind of a potato 🥔'},
+    {type:'line gap'},
+    {type:'line', text:'you were right. i should\'ve listened'},
+    {type:'line', text:'instead of making it about me.'},
+    {type:'line gap'},
+    {type:'line small', text:'no excuses. just… i\'m really sorry.'},
+  ],
+  [
+    {type:'line heading', text:'but also can i say…'},
+    {type:'line gap'},
+    {type:'line', text:'you mean everything to me??'},
+    {type:'line', text:'like genuinely every single day'},
+    {type:'line', text:'is better just bc you\'re in it'},
+    {type:'line gap'},
+    {type:'line', text:'you\'re the first thing i think about'},
+    {type:'line small', text:'in the morning and that\'s just kinda'},
+    {type:'line small', text:'embarrassing to admit but it\'s true 🌹'},
+  ],
+  [
+    {type:'line heading', text:'my promises. for real.'},
+    {type:'line gap'},
+    {type:'promise', text:'i\'ll actually listen next time'},
+    {type:'promise', text:'i won\'t let pride get in the way'},
+    {type:'promise', text:'i\'ll send u cat memes every morning 🐱'},
+    {type:'promise', text:'i\'ll choose you every single time'},
+    {type:'promise', text:'i\'ll be the person you deserve'},
+  ],
+  [
+    {type:'line heading center', text:'so… 🥺'},
+    {type:'line gap'},
+    {type:'line center', text:'will you forgive me?'},
+    {type:'line gap'},
+    {type:'line small center', text:'the cats and i are both holding our breath'},
+    {type:'line small center', text:'(they said they believe in you 🐾)'},
+    {type:'line gap'},
+    {type:'button'},
+  ],
+];
+
+let current=0, typing=false;
+
+// dots
+const dotsEl=document.getElementById('dots');
+pages.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' on':'');
+  d.onclick=()=>{if(!typing)goTo(i);};
+  dotsEl.appendChild(d);
+});
+
+function typeLines(idx,cb){
+  const ta=document.getElementById('ta'+idx);
+  ta.innerHTML=''; typing=true;
+  let i=0;
+  function next(){
+    if(i>=pages[idx].length){typing=false;if(cb)cb();return;}
+    const item=pages[idx][i++];
+    if(item.type==='line gap'){
+      const el=document.createElement('div'); el.className='line gap';
+      ta.appendChild(el); setTimeout(next,80); return;
+    }
+    if(item.type==='button'){
+      setTimeout(()=>{
+        const btn=document.createElement('button');
+        btn.className='forgive-btn'; btn.textContent='💗 yes, i forgive you 💗';
+        btn.onclick=onForgiven; ta.appendChild(btn);
+        typing=false; if(cb)cb();
+      },300); return;
+    }
+    if(item.type==='promise'){
+      const wrap=document.createElement('div'); wrap.className='promise-item';
+      wrap.innerHTML='<div class="box"></div><span></span>';
+      ta.appendChild(wrap);
+      wrap.onclick=()=>{
+        wrap.classList.toggle('checked');
+        wrap.querySelector('.box').textContent=wrap.classList.contains('checked')?'✓':'';
+      };
+      typeText(wrap.querySelector('span'),item.text,next); return;
+    }
+    const el=document.createElement('div');
+    const cls=['line'];
+    if(item.type.includes('heading'))cls.push('heading');
+    if(item.type.includes('small'))cls.push('small');
+    if(item.type.includes('center'))cls.push('center');
+    el.className=cls.join(' ');
+    ta.appendChild(el);
+    typeText(el,item.text,next);
+  }
+  next();
+}
+
+function typeText(el,text,done){
+  let c=0;
+  const cur=document.createElement('span'); cur.className='cursor';
+  el.appendChild(cur);
+  function tick(){
+    if(c>=text.length){cur.remove();setTimeout(done,60+Math.random()*80);return;}
+    el.insertBefore(document.createTextNode(text[c]),cur); c++;
+    const ch=text[c-1];
+    let d=28+Math.random()*38;
+    if(ch==='.'||ch==='?'||ch==='!')d=180+Math.random()*120;
+    else if(ch===',')d=100;
+    else if(ch===' ')d=18;
+    if(Math.random()<.04)d+=250+Math.random()*200;
+    setTimeout(tick,d);
+  }
+  tick();
+}
+
+function goTo(idx){
+  if(idx<0||idx>=pages.length||idx===current)return;
+  const out=document.getElementById('p'+current);
+  const inp=document.getElementById('p'+idx);
+  out.classList.remove('active'); out.classList.add('flip-out');
+  inp.classList.add('active','flip-in');
+  setTimeout(()=>{out.classList.remove('flip-out');inp.classList.remove('flip-in');},550);
+  current=idx; updateUI(); typeLines(idx);
+}
+function changePage(d){if(!typing)goTo(current+d);}
+function updateUI(){
+  document.getElementById('prevBtn').disabled=current===0;
+  document.getElementById('nextBtn').disabled=current===pages.length-1;
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===current));
+}
+
+function onForgiven(){
+  const colors=['#e8637a','#f2a7b5','#ffd700','#ff85a1','#a8e6cf','#ffb3c6'];
+  for(let i=0;i<110;i++){
+    const c=document.createElement('div'); c.className='conf-piece';
+    c.style.left=Math.random()*100+'vw'; c.style.top='-12px';
+    c.style.width=c.style.height=(6+Math.random()*10)+'px';
+    c.style.background=colors[Math.floor(Math.random()*colors.length)];
+    c.style.borderRadius=Math.random()>.5?'50%':'2px';
+    const dur=1.8+Math.random()*1.8;
+    c.style.animation=`confDrop ${dur}s ${Math.random()*1.2}s ease forwards`;
+    document.body.appendChild(c);
+  }
+  const hearts=['💗','💖','💕','🐱','✨','🌹','😻'];
+  for(let i=0;i<16;i++){
+    const h=document.createElement('div'); h.className='heart-burst';
+    h.textContent=hearts[Math.floor(Math.random()*hearts.length)];
+    h.style.left=(20+Math.random()*60)+'vw'; h.style.top=(20+Math.random()*50)+'vh';
+    const ang=Math.random()*360, dist=80+Math.random()*120;
+    h.style.setProperty('--tx',Math.cos(ang)*dist+'px');
+    h.style.setProperty('--ty',Math.sin(ang)*dist+'px');
+    h.style.animationDelay=Math.random()*.4+'s';
+    document.body.appendChild(h);
+  }
+  const btn=document.querySelector('.forgive-btn');
+  if(btn){ btn.style.display='none';
+    const ta=document.getElementById('ta4');
+    const msg=document.createElement('div'); msg.className='line heading center'; ta.appendChild(msg);
+    typeText(msg,'omg YAYYYY 🎉🐱💕',()=>{
+      const sub=document.createElement('div'); sub.className='line small center'; ta.appendChild(sub);
+      typeText(sub,'i love you so so so much 🥺',()=>{});
+    });
+  }
+  setTimeout(()=>document.querySelectorAll('.conf-piece,.heart-burst').forEach(e=>e.remove()),6000);
+}
+
+typeLines(0);
+</script>
+</body>
+</html>
